@@ -5,24 +5,33 @@
 void drawCircle(float x, float y, float radius );
 void display(void);
 
+struct Color {
+  float red;
+  float green;
+  float blue;
+};
+
+Color RED = {1.0, 0.0, 0.0};
+Color YELLOW = {1.0, 1.0, 0.0};
+Color GREEN = {0.0, 1.0, 0.0};
+Color BLUE = {0.0, 0.0, 1.0};
+
 
 
 class Orbitor {
+  Color color;
   float delta;
   float x;
   float y;
   float radius;
-  GLfloat red = 0;
-  GLfloat green = 0;
-  GLfloat blue = 0;
   float rad = 0.0;
   float orbit_rad = 1.0;
   
 public:
-  Orbitor(float radius, float orbit_rad, float period){ 
+  Orbitor(float radius, float orbit_rad, float period, Color& color){ 
+    this->color = color;
     this->delta = 1/period;
     this->radius = radius;
-    this->red = 1.0;
     this->orbit_rad = orbit_rad;
     x = cos(rad) * orbit_rad;
     y = sin(rad) * orbit_rad;
@@ -30,7 +39,7 @@ public:
   };
   
   void display(){
-    glColor3f(red,green,blue);    
+    glColor3f(color.red,color.green,color.blue);    
     drawCircle(x, y, radius);
   };
 
@@ -45,11 +54,11 @@ public:
 };
 
 Orbitor orbitors[]={
-  Orbitor(0.25, 12.0, 100),
-  Orbitor(0.25, 16.0, 200),
-  Orbitor(0.25, 19.0, 300),
-  Orbitor(0.25, 22.0, 400),
-  Orbitor(0.25, 24.0, 500)
+  Orbitor(0.25, 12.0, 100,RED),
+  Orbitor(0.25, 16.0, 200, GREEN),
+  Orbitor(0.25, 19.0, 300, BLUE),
+  Orbitor(0.25, 22.0, 400,RED),
+  Orbitor(0.25, 24.0, 500,GREEN)
 
 };
 
@@ -70,7 +79,7 @@ void display(void)
       orbitors[i].display();
     }
     
-    glColor3f(1,1,0);    
+    glColor3f(YELLOW.red,YELLOW.green,YELLOW.blue);    
     drawCircle(0.0, 0.0, 1.0);
     glPopMatrix();
     glFlush();
