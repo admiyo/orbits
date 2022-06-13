@@ -6,11 +6,54 @@ void drawCircle(float x, float y, float radius );
 void display(void);
 
 
-float rad = 0.0;
-float step_x = 0.01;
-float step_y = 0.01;
-float delta = 0.1;
 
+class Orbitor {
+  float delta;
+  float x;
+  float y;
+  float radius;
+  GLfloat red = 0;
+  GLfloat green = 0;
+  GLfloat blue = 0;
+  float rad = 0.0;
+  float orbit_rad = 1.0;
+  
+public:
+  Orbitor(float radius, float orbit_rad, float period){ 
+    this->delta = 1/period;
+    this->radius = radius;
+    this->red = 1.0;
+    this->orbit_rad = orbit_rad;
+    x = cos(rad) * orbit_rad;
+    y = sin(rad) * orbit_rad;
+
+  };
+  
+  void display(){
+    glColor3f(red,green,blue);    
+    drawCircle(x, y, radius);
+  };
+
+
+  void update()
+  {
+    rad += delta;
+    x = cos(rad) * orbit_rad;
+    y = sin(rad) * orbit_rad;
+    glutPostRedisplay();
+  }
+};
+
+Orbitor orbitors[]={
+  Orbitor(0.25, 12.0, 100),
+  Orbitor(0.25, 16.0, 200),
+  Orbitor(0.25, 19.0, 300),
+  Orbitor(0.25, 22.0, 400),
+  Orbitor(0.25, 24.0, 500)
+
+};
+
+int o_count = sizeof(orbitors) / sizeof(Orbitor);
 
 
 void init()
@@ -23,12 +66,12 @@ void display(void)
 {
     glClear(GL_COLOR_BUFFER_BIT);
     glPushMatrix();
-    glColor3f(1,1,0);   
-    drawCircle(-2.5 + step_x, 0.0 + step_y, 0.25);
-    glColor3f(0,0,1);    
-    drawCircle(-5.5 + step_x * 3 , 0.0 + step_y * 3, 0.25);
-    glColor3f(1,0,0);    
-    drawCircle(0.0, 0.0, 0.25);
+    for (int i = 0; i < o_count; i++){
+      orbitors[i].display();
+    }
+    
+    glColor3f(1,1,0);    
+    drawCircle(0.0, 0.0, 1.0);
     glPopMatrix();
     glFlush();
     glutSwapBuffers();
@@ -36,9 +79,11 @@ void display(void)
 
 void update()
 {
-  rad += delta;
-  step_x += sin(rad);
-  step_y += cos(rad);
+
+  for (int i = 0; i < o_count; i++){
+    orbitors[i].update();
+  }
+  
   glutPostRedisplay();
 }
 
