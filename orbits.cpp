@@ -3,18 +3,54 @@
 #include <math.h>
 
 void drawCircle(float x, float y, float radius );
-void displayMe(void);
+void display(void);
 
 
-float step = 0.01;
-float delta = step;
+float rad = 0.0;
+float step_x = 0.01;
+float step_y = 0.01;
+float delta = 0.1;
 
-void displayMe(void)
+
+
+void init()
+{
+  glClearColor(0.0, 0.0, 0.0, 0.0);
+  glShadeModel(GL_FLAT);
+}
+
+void display(void)
 {
     glClear(GL_COLOR_BUFFER_BIT);
-    drawCircle(0.5 + step, 0.5, 0.25);    
+    glPushMatrix();
+    glColor3f(1,1,0);   
+    drawCircle(-2.5 + step_x, 0.0 + step_y, 0.25);
+    glColor3f(0,0,1);    
+    drawCircle(-5.5 + step_x * 3 , 0.0 + step_y * 3, 0.25);
+    glColor3f(1,0,0);    
+    drawCircle(0.0, 0.0, 0.25);
+    glPopMatrix();
     glFlush();
-    step += delta; 
+    glutSwapBuffers();
+}
+
+void update()
+{
+  rad += delta;
+  step_x += sin(rad);
+  step_y += cos(rad);
+  glutPostRedisplay();
+}
+
+void reshape(int w, int h)
+{
+  glViewport(0,0,(GLsizei) w, (GLsizei) h);
+  glMatrixMode(GL_PROJECTION);
+  glLoadIdentity();
+  glOrtho(-50.0, 50.0, -50.0, 50.0, -1.0, 1.0);
+  glMatrixMode(GL_MODELVIEW);
+  glLoadIdentity();
+  
 }
 
 void drawCircle(float x, float y, float radius )
@@ -38,11 +74,14 @@ void drawCircle(float x, float y, float radius )
 int main(int argc, char** argv)
 {
     glutInit(&argc, argv);
-    glutInitDisplayMode(GLUT_SINGLE);
-    glutInitWindowSize(300, 300);
+    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
+    glutInitWindowSize(800, 600);
     glutInitWindowPosition(100, 100);
     glutCreateWindow("Hello world from Badprog.com :D");
-    glutDisplayFunc(displayMe);
+    init();
+    glutDisplayFunc(display);
+    glutReshapeFunc(reshape);
+    glutIdleFunc(update);
     glutMainLoop();
     return 0;
 }
