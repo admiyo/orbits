@@ -182,7 +182,7 @@ void drawCircle(float x, float y, float radius )
   glEnd();
 }
 
-int main(int argc, char** argv)
+int orbits(int argc, char** argv)
 {
   if (argc > 1)
     {
