@@ -1,6 +1,14 @@
 // orbits
 #include <GL/glut.h>
+#include <GL/freeglut.h>
 #include <math.h>
+
+
+#include "boost/date_time/gregorian/gregorian.hpp"
+#include <iostream>
+#include <sstream> 
+using namespace std;
+using namespace boost::gregorian;
 
 void drawCircle(float x, float y, float radius );
 void display(void);
@@ -17,6 +25,15 @@ Color GREEN =  {0.0, 1.0, 0.0};
 Color BLUE =   {0.0, 0.0, 1.0};
 Color GRAY =   {0.5, 0.5, 0.5};
 
+void render_string(float x, float y, void *font, const char* text, Color const& rgb)
+{  
+  char *c;
+  glColor3f(rgb.red, rgb.green, rgb.blue); 
+  glRasterPos2f(x, y);
+  glutBitmapString(font, (unsigned char *) text);
+}
+
+
 
 class Orbitor {
   Color color;
@@ -26,10 +43,11 @@ class Orbitor {
   float radius;
   float rad = 0.0;
   float orbit_rad = 1.0;
-
+  const char * name;
+  
 public:
   Orbitor(float radius, float rads, float orbit_rad, float period,
-	  Color& color)
+	  Color& color, const char * name)
   {
     this->color = color;
     this->delta = 10/period;
@@ -38,12 +56,14 @@ public:
     this->rad = rads;
     x = cos(rad) * this->orbit_rad;
     y = sin(rad) * this->orbit_rad;
+    this->name = name;
   };
 
   void display()
   {
     glColor3f(color.red,color.green,color.blue);
     drawCircle(x, y, radius);
+    render_string(x, y, GLUT_BITMAP_HELVETICA_12, this->name, this->color);    
   };
 
 
@@ -56,25 +76,30 @@ public:
   }
 };
 
+
 Orbitor orbitors[]={
-  Orbitor(0.25,   -98, 35.0,    115.88, GRAY),  //mercury
-  Orbitor(0.25,   157, 67.0,    224.70, GREEN), //venus
-  Orbitor(0.25,     0, 93.0,    365.25, BLUE),  //earth
-  Orbitor(0.25,  -165, 142.0,   779.94, RED),   //mars
-  Orbitor(0.25,  -230, 275.0,  1682.00, GRAY),  //ceres
-  Orbitor(0.25,      3, 280.0,  1821.00, GREEN), //psyche
-  Orbitor(0.45,   -100, 484.0,  4333.00, RED),   //jupiter
-  Orbitor(0.45,    -60, 887.0, 10759.00, BLUE)   //Saturn
+  Orbitor(0.25,   -98, 35.0,    115.88,  GRAY,  "Mercury"),
+  Orbitor(0.25,   157, 67.0,    224.70,  GREEN, "Venus"),
+  Orbitor(0.25,     0, 93.0,    365.25,  BLUE,  "Earth"),
+  Orbitor(0.25,  -165, 142.0,   779.94,  RED,   "Mars"),
+  Orbitor(0.25,  -230, 275.0,  1682.00,  GRAY,  "Ceres"),
+  Orbitor(0.25,      3, 280.0,  1821.00, GREEN, "Psyche"),
+  Orbitor(0.45,   -100, 484.0,  4333.00, RED,   "Jupiter"),
+  Orbitor(0.45,    -60, 887.0, 10759.00, BLUE,  "Saturn")
 };
 
 int o_count = sizeof(orbitors) / sizeof(Orbitor);
+std::string s("2022-06-15"); 
+date current_time(from_simple_string(s));
 
 
 void init()
 {
   glClearColor(0.0, 0.0, 0.0, 0.0);
   glShadeModel(GL_FLAT);
+
 }
+
 
 void display(void)
 {
@@ -86,6 +111,15 @@ void display(void)
 
     glColor3f(YELLOW.red,YELLOW.green,YELLOW.blue);
     drawCircle(0.0, 0.0, 0.75);
+    render_string(0.75, 0.0, GLUT_BITMAP_HELVETICA_12, "Sun", YELLOW);
+
+    std::stringstream c_date;
+    c_date << "date: "<< current_time.year()
+	   << "-" <<  current_time.month()
+	   << "-" <<  current_time.day() ;
+
+    render_string(-30.0, 30.0, GLUT_BITMAP_HELVETICA_12, c_date.str().c_str(), YELLOW);
+
     glPopMatrix();
     glFlush();
     glutSwapBuffers();
@@ -97,8 +131,7 @@ void update()
   for (int i = 0; i < o_count; i++){
     orbitors[i].update();
   }
-
-  glutPostRedisplay();
+  current_time += days(1); 
 }
 
 void reshape(int w, int h)
@@ -136,7 +169,7 @@ int main(int argc, char** argv)
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
     glutInitWindowSize(800, 600);
     glutInitWindowPosition(100, 100);
-    glutCreateWindow("Hello world from Badprog.com :D");
+    glutCreateWindow("Solar System Orbital Positions");
     init();
     glutDisplayFunc(display);
     glutReshapeFunc(reshape);
