@@ -6,4 +6,5 @@
   #define orbits_EXPORT
 #endif
 
-orbits_EXPORT void orbits();
+orbits_EXPORT int orbits(int argc, char** argv)
+;

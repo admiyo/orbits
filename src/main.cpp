@@ -1,5 +1,5 @@
 #include "orbits.h"
 
-int main(int argc, char** argv)
-    orbits(argc, arg);
+int main(int argc, char** argv) {
+    return orbits(argc, argv);
 }
