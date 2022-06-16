@@ -66,15 +66,22 @@ public:
     render_string(x, y, GLUT_BITMAP_HELVETICA_12, this->name, this->color);    
   };
 
-
   void update()
   {
     rad += delta;
     x = cos(rad) * this->orbit_rad;
     y = sin(rad) * this->orbit_rad;
     glutPostRedisplay();
-  }
+  };
 };
+
+
+bool do_update = false;
+void mouseClicks(int button, int state, int x, int y) {
+  if(button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
+    do_update = ! do_update;
+  }
+}
 
 
 Orbitor orbitors[]={
@@ -127,7 +134,10 @@ void display(void)
 
 void update()
 {
-
+  if (! do_update)
+    {
+      return;
+    }
   for (int i = 0; i < o_count; i++){
     orbitors[i].update();
   }
@@ -170,6 +180,7 @@ int main(int argc, char** argv)
     glutInitWindowSize(800, 600);
     glutInitWindowPosition(100, 100);
     glutCreateWindow("Solar System Orbital Positions");
+    glutMouseFunc(mouseClicks);
     init();
     glutDisplayFunc(display);
     glutReshapeFunc(reshape);
