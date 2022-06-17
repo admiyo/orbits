@@ -15,4 +15,4 @@ missing
 src/.deps/
 src/Makefile
 src/Makefile.in
-
+src/*.o
