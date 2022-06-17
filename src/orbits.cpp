@@ -15,6 +15,7 @@ void display(void);
 
 bool do_update = false;
 int direction = 1;
+const int SCALING = 10;
 
 struct Color {
   float red;
@@ -44,10 +45,12 @@ class Orbitor {
   float x;
   float y;
   float radius;
-  float rad = 0.0;
   float orbit_rad = 1.0;
-  const char * name;
 
+public:
+  float rad = 0.0;
+  const char * name;
+  
 public:
   Orbitor(float radius, float rads, float orbit_rad, float period,
 	  Color& color, const char * name)
@@ -55,13 +58,17 @@ public:
     this->color = color;
     this->delta = 10/period;
     this->radius = radius;
-    this->orbit_rad = orbit_rad / 20;
+    this->orbit_rad = orbit_rad / SCALING;
     this->rad = rads;
-    x = cos(rad) * this->orbit_rad;
-    y = sin(rad) * this->orbit_rad;
     this->name = name;
+    calculate_position();
   };
 
+  void calculate_position(){
+    x = cos(rad) * this->orbit_rad;
+    y = sin(rad) * this->orbit_rad;
+  }
+  
   void display()
   {
     glColor3f(color.red,color.green,color.blue);
@@ -69,11 +76,19 @@ public:
     render_string(x, y, GLUT_BITMAP_HELVETICA_12, this->name, this->color);
   };
 
+  void set_date(date& d){
+    std::string s("2022-06-15");
+    date base_time = date(from_simple_string(s));
+    int day_count = (d - base_time).days();
+    rad = rad + (day_count * delta);
+    calculate_position();
+
+  }
+  
   void update()
   {
     rad += delta * direction;
-    x = cos(rad) * this->orbit_rad;
-    y = sin(rad) * this->orbit_rad;
+    calculate_position();
     glutPostRedisplay();
   };
 };
@@ -96,20 +111,19 @@ Orbitor orbitors[]={
   Orbitor(0.25,  -165, 142.0,   779.94,  RED,   "Mars"),
   Orbitor(0.25,  -230, 275.0,  1682.00,  GRAY,  "Ceres"),
   Orbitor(0.25,      3, 280.0,  1821.00, GREEN, "Psyche"),
-  Orbitor(0.45,   -100, 484.0,  4333.00, RED,   "Jupiter"),
-  Orbitor(0.45,    -60, 887.0, 10759.00, BLUE,  "Saturn")
+  Orbitor(0.45,   -100, 484.0,  4333.00, RED,   "Jupiter")//,
+  //  Orbitor(0.45,    -60, 887.0, 10759.00, BLUE,  "Saturn")
 };
 
 int o_count = sizeof(orbitors) / sizeof(Orbitor);
 std::string s("2022-06-15");
 date current_time(from_simple_string(s));
-
+int day_count = 0;
 
 void init()
 {
   glClearColor(0.0, 0.0, 0.0, 0.0);
-  glShadeModel(GL_FLAT);
-
+  glShadeModel(GL_FLAT); 
 }
 
 
@@ -184,12 +198,17 @@ void drawCircle(float x, float y, float radius )
 
 int orbits(int argc, char** argv)
 {
+  
   if (argc > 1)
     {
       cout << argv[1] << endl;
-      std::string s(argv[1]);
+      s = std::string(argv[1]);
       current_time = date(from_simple_string(s));
+      for (int i =0; i < o_count; i++){
+	orbitors[i].set_date(current_time);
+      }
     }
+  
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
     glutInitWindowSize(800, 600);
