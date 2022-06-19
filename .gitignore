@@ -16,3 +16,14 @@ src/.deps/
 src/Makefile
 src/Makefile.in
 src/*.o
+build-release/
+conan.lock
+conanbuildinfo.txt
+conaninfo.txt
+graph_info.json
+test_package/build-release/
+test_package/conan.lock
+test_package/conanbuildinfo.txt
+test_package/conaninfo.txt
+test_package/graph_info.json
+
