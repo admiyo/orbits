@@ -12,8 +12,9 @@ using namespace boost::gregorian;
 
 void drawCircle(float x, float y, float radius );
 void display(void);
+void distances_table();
 
-bool do_update = true;
+bool do_update = false;
 int direction = 1;
 const int SCALING = 10;
 
@@ -90,8 +91,13 @@ public:
     calculate_position();
     glutPostRedisplay();
   };
-};
 
+  float distance(Orbitor& o)
+  {
+    return sqrt(pow((o.x - x ),  2)  + pow((o.y - y ), 2)) * SCALING;
+  };
+
+};
 
 void mouseClicks(int button, int state, int x, int y) {
   if(button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
@@ -99,6 +105,9 @@ void mouseClicks(int button, int state, int x, int y) {
   }
   if(button == GLUT_RIGHT_BUTTON && state == GLUT_DOWN) {
     direction = direction * -1;
+  }
+  if(button == GLUT_MIDDLE_BUTTON && state == GLUT_DOWN) {
+    distances_table();
   }
 }
 
@@ -182,8 +191,7 @@ void drawCircle(float x, float y, float radius )
 {
   float PI = 3.14;
   int i;
-  int triangleAmount = 20; //# of triangles used to draw circle
-  //GLfloat radius = 0.8f; //radius
+  int triangleAmount = 20;
   GLfloat twicePi = 2.0f * PI;
   glBegin(GL_TRIANGLE_FAN);
   glVertex2f(x, y); // center of circle
@@ -195,6 +203,32 @@ void drawCircle(float x, float y, float radius )
   }
   glEnd();
 }
+
+void distances_table(){
+  int w = 7;
+  cout << setw(w) << " " << " | " ;
+  for (Orbitor o : orbitors){
+    cout << setw(w) << o.name << " | " ;
+  }
+  cout << endl;  
+  cout << "--------|" ;
+  for (Orbitor o : orbitors){
+    cout << "---------|" ;
+  }
+  cout << endl;  
+
+  for (Orbitor o : orbitors){
+    cout << setw(w) << o.name << " | " ;
+      for (Orbitor t : orbitors){
+	cout << setw(w) << o.distance(t) << " | ";
+      }
+      cout << endl;  
+  }
+  cout << "distances in millions of miles" << endl;  
+  cout << endl;
+
+}
+
 
 int orbits(int argc, char** argv)
 {
