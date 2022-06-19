@@ -13,7 +13,7 @@ using namespace boost::gregorian;
 void drawCircle(float x, float y, float radius );
 void display(void);
 
-bool do_update = false;
+bool do_update = true;
 int direction = 1;
 const int SCALING = 10;
 
@@ -82,7 +82,6 @@ public:
     int day_count = (d - base_time).days();
     rad = rad + (day_count * delta);
     calculate_position();
-
   }
   
   void update()
@@ -103,8 +102,7 @@ void mouseClicks(int button, int state, int x, int y) {
   }
 }
 
-
-Orbitor orbitors[]={
+std::vector<Orbitor> orbitors = {
   Orbitor(0.25,   -98, 35.0,    115.88,  GRAY,  "Mercury"),
   Orbitor(0.25,   157, 67.0,    224.70,  GREEN, "Venus"),
   Orbitor(0.25,     0, 93.0,    365.25,  BLUE,  "Earth"),
@@ -115,7 +113,6 @@ Orbitor orbitors[]={
   //  Orbitor(0.45,    -60, 887.0, 10759.00, BLUE,  "Saturn")
 };
 
-int o_count = sizeof(orbitors) / sizeof(Orbitor);
 std::string s("2022-06-15");
 date current_time(from_simple_string(s));
 int day_count = 0;
@@ -131,10 +128,10 @@ void display(void)
 {
     glClear(GL_COLOR_BUFFER_BIT);
     glPushMatrix();
-    for (int i = 0; i < o_count; i++){
-      orbitors[i].display();
+    for (Orbitor o : orbitors){
+      o.display();
     }
-
+   
     glColor3f(YELLOW.red,YELLOW.green,YELLOW.blue);
     drawCircle(0.0, 0.0, 0.75);
     render_string(0.75, 0.0, GLUT_BITMAP_HELVETICA_12, "Sun", YELLOW);
@@ -157,9 +154,12 @@ void update()
     {
       return;
     }
-  for (int i = 0; i < o_count; i++){
-    orbitors[i].update();
-  }
+  for (std::vector<Orbitor>::iterator it = orbitors.begin() ;
+       it != orbitors.end();
+       ++it)
+    {
+      it->update();
+    }  
   if (direction > 0){
     current_time += days(1);
   }else{
@@ -204,8 +204,8 @@ int orbits(int argc, char** argv)
       cout << argv[1] << endl;
       s = std::string(argv[1]);
       current_time = date(from_simple_string(s));
-      for (int i =0; i < o_count; i++){
-	orbitors[i].set_date(current_time);
+      for (Orbitor o : orbitors){
+	o.set_date(current_time);
       }
     }
   
