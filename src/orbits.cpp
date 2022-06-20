@@ -46,6 +46,48 @@ void render_string(float x, float y, void *font, const char* text, Color const& 
   glutBitmapString(font, (unsigned char *) text);
 }
 
+class Ship{
+  const char * name;
+  float pos_x;
+  float pos_y;
+  float velocity_x;
+  float velocity_y;
+  Color color;
+public:
+  Ship(const char* name,
+       float pos_x, float pos_y,
+       float velocity_x,   float velocity_y,
+       Color& color ){
+    this->name = name;
+    this->pos_x = pos_x;
+    this->pos_y = pos_x;
+    this->velocity_x = velocity_x;
+    this->velocity_y = velocity_y;
+    this->color = color;
+  }
+
+  void display()
+  {
+    glColor3f(color.red,color.green,color.blue);
+    drawCircle(pos_x, pos_y, 0.1);
+    render_string(pos_x, pos_y, GLUT_BITMAP_HELVETICA_12, this->name, this->color);
+  };
+
+  void calculate_position(){
+    int d = (current_time - base_time).days();
+    pos_x += this->velocity_x;
+    pos_y += this->velocity_y;
+  }
+
+  
+  void update()
+  {
+    calculate_position();
+    glutPostRedisplay();
+  };
+
+};
+
 class Orbitor {
   Color color;
   float delta;
@@ -174,6 +216,10 @@ std::vector<Orbitor> orbitors = {
   //  Orbitor(0.45,    -60, 887.0, 10759.00, BLUE,  "Saturn")
 };
 
+std::vector<Ship> ships = {
+  Ship("Afterimage",  0.0, 0.0, 0.01, 0.01, BLUE )
+};
+
 
 void init()
 {
@@ -188,6 +234,9 @@ void display(void)
     glPushMatrix();
     for (Orbitor o : orbitors){
       o.display();
+    }
+    for (Ship ship : ships){
+      ship.display();
     }
    
     glColor3f(YELLOW.red,YELLOW.green,YELLOW.blue);
@@ -229,6 +278,15 @@ void update()
     {
       it->update();
     }
+
+  for (std::vector<Ship>::iterator it = ships.begin() ;
+       it != ships.end();
+       ++it)
+    {
+      it->update();
+    }
+
+  
   update_time();
 }
 
