@@ -12,6 +12,15 @@ using namespace std;
 using namespace boost::gregorian;
 using namespace boost::posix_time;
 
+#include "orbits.h"
+
+
+Color RED =    {1.0, 0.0, 0.0};
+Color YELLOW = {1.0, 1.0, 0.0};
+Color GREEN =  {0.0, 1.0, 0.0};
+Color BLUE =   {0.0, 0.0, 1.0};
+Color GRAY =   {0.5, 0.5, 0.5};
+
 void drawCircle(float x, float y, float radius );
 void display(void);
 void distances_table();
@@ -26,17 +35,6 @@ int day_count = 0;
 int time_delta = 24;  
 
 
-struct Color {
-  float red;
-  float green;
-  float blue;
-};
-
-Color RED =    {1.0, 0.0, 0.0};
-Color YELLOW = {1.0, 1.0, 0.0};
-Color GREEN =  {0.0, 1.0, 0.0};
-Color BLUE =   {0.0, 0.0, 1.0};
-Color GRAY =   {0.5, 0.5, 0.5};
 
 void render_string(float x, float y, void *font, const char* text, Color const& rgb)
 {
@@ -46,16 +44,7 @@ void render_string(float x, float y, void *font, const char* text, Color const& 
   glutBitmapString(font, (unsigned char *) text);
 }
 
-class Ship{
-  const char * name;
-  float pos_x;
-  float pos_y;
-  float velocity_x;
-  float velocity_y;
-  Color color;
-  float mass;
-public:
-  Ship(const char* name,
+Ship::Ship(const char* name,
        float pos_x, float pos_y,
        float velocity_x,   float velocity_y,
        Color& color ){
@@ -68,53 +57,45 @@ public:
     this->mass = 20*2000;
   }
 
-  void display()
+  void Ship::display()
   {
     glColor3f(color.red,color.green,color.blue);
     drawCircle(pos_x, pos_y, 0.1);
     render_string(pos_x, pos_y, GLUT_BITMAP_HELVETICA_12, this->name, this->color);
   };
 
-  void calculate_position(){
+  void Ship::calculate_position(){
     int d = (current_time - base_time).days();
     pos_x += this->velocity_x;
     pos_y += this->velocity_y;
   }
 
   
-  void update()
+  void Ship::update()
   {
     calculate_position();
     glutPostRedisplay();
   };
 
-};
+  float Ship::distance(Orbitor& o)
+  {
+    return sqrt(pow((o.x - pos_x ),  2)  + pow((o.y - pos_y ), 2)) * SCALING;
+  };
 
-class Orbitor {
-  Color color;
-  float x;
-  float y;
-  float radius;
-  float orbit_radius = 1.0;
-  float start_rad;
-  float period;
 
-public:
-  const char * name;
-  
-public:
-  Orbitor(float radius, float rads, float orbit_radius, float period,
-	  Color& color, const char * name)
+Orbitor::Orbitor(float radius, float rads, float orbit_radius, float period,
+	  Color& color, const char * name, double mass)
   {
     this->color = color;
     this->period = period;
     this->radius = radius;
     this->orbit_radius = orbit_radius / SCALING;
     this->name = name;
+    this->mass = mass;
     calculate_position();
   };
 
-  void calculate_position(){
+  void Orbitor::calculate_position(){
     int d = (current_time - base_time).days();
 
     
@@ -124,28 +105,28 @@ public:
     y = sin(rads) * this->orbit_radius;
   }
   
-  void display()
+  void Orbitor::display()
   {
     glColor3f(color.red,color.green,color.blue);
     drawCircle(x, y, radius);
     render_string(x, y, GLUT_BITMAP_HELVETICA_12, this->name, this->color);
   };
 
-  void set_date(date& d){
+  void Orbitor::set_date(date& d){
     calculate_position();
   }
   
-  void update()
+  void Orbitor::update()
   {
     calculate_position();
     glutPostRedisplay();
   };
 
-  float distance(Orbitor& o)
+  float Orbitor::distance(Orbitor& o)
   {
     return sqrt(pow((o.x - x ),  2)  + pow((o.y - y ), 2)) * SCALING;
   };
-};
+
 
 void reverse(){
    direction = direction * -1;
@@ -204,14 +185,18 @@ void keyPressed (unsigned char key, int x, int y){
 }
 
 std::vector<Orbitor> orbitors = {
-  Orbitor(0.50,     0,  0.1,      0.0,  YELLOW,"Sun"),
-  Orbitor(0.25,   -98, 35.0,    115.88,  GRAY,  "Mercury"),
-  Orbitor(0.25,   157, 67.0,    224.70,  GREEN, "Venus"),
-  Orbitor(0.25,     0, 93.0,    365.25,  BLUE,  "Earth"),
-  Orbitor(0.25,  -165, 142.0,   779.94,  RED,   "Mars"),
-  Orbitor(0.25,  -230, 275.0,  1682.00,  GRAY,  "Ceres"),
-  Orbitor(0.25,      3, 280.0,  1821.00, GREEN, "Psyche"),
-  Orbitor(0.45,   -100, 484.0,  4333.00, RED,   "Jupiter")//,
+  Orbitor(0.50,     0,  0.1,      0.0,  YELLOW,"Sun",
+	  19890000000000000000000000000000.0),
+  Orbitor(0.25,   -98, 35.0,    115.88,  GRAY,  "Mercury", 1.0),
+  Orbitor(0.25,   157, 67.0,    224.70,  GREEN, "Venus", 1.0),
+  Orbitor(0.25,     0, 93.0,    365.25,  BLUE,  "Earth",
+              59720000000000000000000000.0),
+  Orbitor(0.25,  -165, 142.0,   779.94,  RED,   "Mars",
+	       6391000000000000000000000.0),
+  Orbitor(0.25,  -230, 275.0,  1682.00,  GRAY,  "Ceres",
+                   910000000000000000000.0),
+  Orbitor(0.25,      3, 280.0,  1821.00, GREEN, "Psyche", 1.0),
+  Orbitor(0.45,   -100, 484.0,  4333.00, RED,   "Jupiter", 1.0)//,
   //  Orbitor(0.45,    -60, 887.0, 10759.00, BLUE,  "Saturn")
 };
 
