@@ -5,18 +5,26 @@
 #include <unistd.h>
 
 #include "boost/date_time/gregorian/gregorian.hpp"
+#include "boost/date_time/posix_time/posix_time.hpp"
 #include <iostream>
 #include <sstream>
 using namespace std;
 using namespace boost::gregorian;
+using namespace boost::posix_time;
 
 void drawCircle(float x, float y, float radius );
 void display(void);
 void distances_table();
 
-bool do_update = false;
+bool do_update = true;
 int direction = 1;
 const int SCALING = 10;
+std::string s("2022-06-15");
+date base_time(from_simple_string(s));
+date current_time;
+int day_count = 0;
+int time_delta = 24;  
+
 
 struct Color {
   float red;
@@ -38,36 +46,42 @@ void render_string(float x, float y, void *font, const char* text, Color const& 
   glutBitmapString(font, (unsigned char *) text);
 }
 
-
-
 class Orbitor {
   Color color;
   float delta;
   float x;
   float y;
   float radius;
-  float orbit_rad = 1.0;
+  float orbit_radius = 1.0;
+  float start_rad;
+  float period;
 
 public:
-  float rad = 0.0;
   const char * name;
   
 public:
-  Orbitor(float radius, float rads, float orbit_rad, float period,
+  Orbitor(float radius, float rads, float orbit_radius, float period,
 	  Color& color, const char * name)
   {
     this->color = color;
+    this->period = period;
     this->delta = 10/period;
     this->radius = radius;
-    this->orbit_rad = orbit_rad / SCALING;
-    this->rad = rads;
+    this->orbit_radius = orbit_radius / SCALING;
     this->name = name;
     calculate_position();
   };
 
   void calculate_position(){
-    x = cos(rad) * this->orbit_rad;
-    y = sin(rad) * this->orbit_rad;
+    int d = (current_time - base_time).days();
+
+    double delta = d / period;
+    if (delta == 0.0){
+      cout <<"delta too low for " << this->name << endl;
+    }
+    double rads = start_rad + delta;
+    x = cos(rads) * this->orbit_radius;
+    y = sin(rads) * this->orbit_radius;
   }
   
   void display()
@@ -78,16 +92,11 @@ public:
   };
 
   void set_date(date& d){
-    std::string s("2022-06-15");
-    date base_time = date(from_simple_string(s));
-    int day_count = (d - base_time).days();
-    rad = rad + (day_count * delta);
     calculate_position();
   }
   
   void update()
   {
-    rad += delta * direction;
     calculate_position();
     glutPostRedisplay();
   };
@@ -96,19 +105,62 @@ public:
   {
     return sqrt(pow((o.x - x ),  2)  + pow((o.y - y ), 2)) * SCALING;
   };
-
 };
+
+void reverse(){
+   direction = direction * -1;
+}
+
+void start_stop(){
+    do_update = ! do_update;
+}
+
+void speed_up(){
+  time_delta = time_delta + 1;
+  if (time_delta > 240 ){
+    time_delta = 240 ;
+  }
+}
+
+void slow_down(){
+  time_delta = time_delta - 1;
+  if (time_delta <= 0.0 ){
+    time_delta = 1;
+  }
+}
 
 void mouseClicks(int button, int state, int x, int y) {
   if(button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
-    do_update = ! do_update;
+    start_stop();
   }
   if(button == GLUT_RIGHT_BUTTON && state == GLUT_DOWN) {
-    direction = direction * -1;
+    reverse();
   }
   if(button == GLUT_MIDDLE_BUTTON && state == GLUT_DOWN) {
     distances_table();
   }
+}
+
+void keyPressed (unsigned char key, int x, int y){
+
+  if (key == 't') {
+    distances_table();
+  }
+  if (key == 'r'){
+    reverse();
+  }
+  if (key == 's'){
+    start_stop();
+  }
+  if (key == '+'){
+    speed_up();
+  }
+  if (key == '-'){
+    slow_down();
+  }
+  if (key == 'q'){
+    exit(0);
+  }  
 }
 
 std::vector<Orbitor> orbitors = {
@@ -122,9 +174,6 @@ std::vector<Orbitor> orbitors = {
   //  Orbitor(0.45,    -60, 887.0, 10759.00, BLUE,  "Saturn")
 };
 
-std::string s("2022-06-15");
-date current_time(from_simple_string(s));
-int day_count = 0;
 
 void init()
 {
@@ -146,15 +195,26 @@ void display(void)
     render_string(0.75, 0.0, GLUT_BITMAP_HELVETICA_12, "Sun", YELLOW);
 
     std::stringstream c_date;
-    c_date << "date: "<< current_time.year()
+    c_date << "time_delta:  "<< time_delta <<"hours " << endl
+	   << "date: "<< current_time.year()
 	   << "-" <<  current_time.month()
-	   << "-" <<  current_time.day() ;
+	   << "-" <<  current_time.day();
 
     render_string(-30.0, 30.0, GLUT_BITMAP_HELVETICA_12, c_date.str().c_str(), YELLOW);
 
     glPopMatrix();
     glFlush();
     glutSwapBuffers();
+}
+
+void update_time(){
+  ptime t(current_time);
+  if (direction > 0){
+    t += hours(time_delta);
+  }else{
+    t -= hours(time_delta);
+  }
+  current_time = t.date();
 }
 
 void update()
@@ -168,12 +228,8 @@ void update()
        ++it)
     {
       it->update();
-    }  
-  if (direction > 0){
-    current_time += days(1);
-  }else{
-    current_time -= days(1);
-  }
+    }
+  update_time();
 }
 
 void reshape(int w, int h)
@@ -249,6 +305,7 @@ int orbits(int argc, char** argv)
     glutInitWindowPosition(100, 100);
     glutCreateWindow("Solar System Orbital Positions");
     glutMouseFunc(mouseClicks);
+    glutKeyboardFunc(keyPressed);
     init();
     glutDisplayFunc(display);
     glutReshapeFunc(reshape);
