@@ -297,6 +297,8 @@ int orbits(int argc, char** argv)
       for (Orbitor o : orbitors){
 	o.set_date(current_time);
       }
+    }else{
+      current_time = base_time;
     }
   
     glutInit(&argc, argv);
