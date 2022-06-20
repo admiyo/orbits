@@ -53,6 +53,7 @@ class Ship{
   float velocity_x;
   float velocity_y;
   Color color;
+  float mass;
 public:
   Ship(const char* name,
        float pos_x, float pos_y,
@@ -64,6 +65,7 @@ public:
     this->velocity_x = velocity_x;
     this->velocity_y = velocity_y;
     this->color = color;
+    this->mass = 20*2000;
   }
 
   void display()
@@ -90,7 +92,6 @@ public:
 
 class Orbitor {
   Color color;
-  float delta;
   float x;
   float y;
   float radius;
@@ -107,7 +108,6 @@ public:
   {
     this->color = color;
     this->period = period;
-    this->delta = 10/period;
     this->radius = radius;
     this->orbit_radius = orbit_radius / SCALING;
     this->name = name;
@@ -117,10 +117,8 @@ public:
   void calculate_position(){
     int d = (current_time - base_time).days();
 
-    double delta = d / period;
-    if (delta == 0.0){
-      cout <<"delta too low for " << this->name << endl;
-    }
+    
+    double delta = (period == 0.0) ? period : d / period;
     double rads = start_rad + delta;
     x = cos(rads) * this->orbit_radius;
     y = sin(rads) * this->orbit_radius;
@@ -206,6 +204,7 @@ void keyPressed (unsigned char key, int x, int y){
 }
 
 std::vector<Orbitor> orbitors = {
+  Orbitor(0.50,     0,  0.1,      0.0,  YELLOW,"Sun"),
   Orbitor(0.25,   -98, 35.0,    115.88,  GRAY,  "Mercury"),
   Orbitor(0.25,   157, 67.0,    224.70,  GREEN, "Venus"),
   Orbitor(0.25,     0, 93.0,    365.25,  BLUE,  "Earth"),
@@ -239,9 +238,6 @@ void display(void)
       ship.display();
     }
    
-    glColor3f(YELLOW.red,YELLOW.green,YELLOW.blue);
-    drawCircle(0.0, 0.0, 0.75);
-    render_string(0.75, 0.0, GLUT_BITMAP_HELVETICA_12, "Sun", YELLOW);
 
     std::stringstream c_date;
     c_date << "time_delta:  "<< time_delta <<"hours " << endl
@@ -352,24 +348,24 @@ int orbits(int argc, char** argv)
       cout << argv[1] << endl;
       s = std::string(argv[1]);
       current_time = date(from_simple_string(s));
-      for (Orbitor o : orbitors){
-	o.set_date(current_time);
-      }
     }else{
       current_time = base_time;
     }
+  for (Orbitor o : orbitors){
+    o.set_date(current_time);
+  }
   
-    glutInit(&argc, argv);
-    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
-    glutInitWindowSize(800, 600);
-    glutInitWindowPosition(100, 100);
-    glutCreateWindow("Solar System Orbital Positions");
-    glutMouseFunc(mouseClicks);
-    glutKeyboardFunc(keyPressed);
-    init();
-    glutDisplayFunc(display);
-    glutReshapeFunc(reshape);
-    glutIdleFunc(update);
-    glutMainLoop();
-    return 0;
+  glutInit(&argc, argv);
+  glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
+  glutInitWindowSize(800, 600);
+  glutInitWindowPosition(100, 100);
+  glutCreateWindow("Solar System Orbital Positions");
+  glutMouseFunc(mouseClicks);
+  glutKeyboardFunc(keyPressed);
+  init();
+  glutDisplayFunc(display);
+  glutReshapeFunc(reshape);
+  glutIdleFunc(update);
+  glutMainLoop();
+  return 0;
 }
