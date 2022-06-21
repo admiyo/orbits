@@ -25,14 +25,14 @@ void drawCircle(float x, float y, float radius );
 void display(void);
 void distances_table();
 
-bool do_update = true;
+bool do_update = false;
 int direction = 1;
 const int SCALING = 10;
 std::string s("2022-06-15");
 date base_time(from_simple_string(s));
 date current_time;
 int day_count = 0;
-int time_delta = 24;  
+int time_delta = 1;
 
 
 
