@@ -1,5 +1,5 @@
 #pragma once
-#include "boost/date_time/gregorian/gregorian.hpp"
+#include <boost/date_time/gregorian/gregorian.hpp>
 
 #ifdef _WIN32
   #define orbits_EXPORT __declspec(dllexport)
