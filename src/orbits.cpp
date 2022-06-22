@@ -25,14 +25,14 @@ void drawCircle(float x, float y, float radius );
 void display(void);
 void distances_table();
 
-bool do_update = false;
+bool do_update = true;
 int direction = 1;
 const int SCALING = 10;
 std::string s("2022-06-15");
 date base_time(from_simple_string(s));
 date current_time;
 int day_count = 0;
-int time_delta = 1;
+int time_delta = 24;
 
 
 
@@ -43,44 +43,6 @@ void render_string(float x, float y, void *font, const char* text, Color const& 
   glRasterPos2f(x, y);
   glutBitmapString(font, (unsigned char *) text);
 }
-
-Ship::Ship(const char* name,
-       float pos_x, float pos_y,
-       float velocity_x,   float velocity_y,
-       Color& color ){
-    this->name = name;
-    this->pos_x = pos_x;
-    this->pos_y = pos_x;
-    this->velocity_x = velocity_x;
-    this->velocity_y = velocity_y;
-    this->color = color;
-    this->mass = 20*2000;
-  }
-
-  void Ship::display()
-  {
-    glColor3f(color.red,color.green,color.blue);
-    drawCircle(pos_x, pos_y, 0.1);
-    render_string(pos_x, pos_y, GLUT_BITMAP_HELVETICA_12, this->name, this->color);
-  };
-
-  void Ship::calculate_position(){
-    int d = (current_time - base_time).days();
-    pos_x += this->velocity_x;
-    pos_y += this->velocity_y;
-  }
-
-  
-  void Ship::update()
-  {
-    calculate_position();
-    glutPostRedisplay();
-  };
-
-  float Ship::distance(Orbitor& o)
-  {
-    return sqrt(pow((o.x - pos_x ),  2)  + pow((o.y - pos_y ), 2)) * SCALING;
-  };
 
 
 Orbitor::Orbitor(float radius, float rads, float orbit_radius, float period,
@@ -200,10 +162,6 @@ std::vector<Orbitor> orbitors = {
   //  Orbitor(0.45,    -60, 887.0, 10759.00, BLUE,  "Saturn")
 };
 
-std::vector<Ship> ships = {
-  Ship("Afterimage",  0.0, 0.0, 0.01, 0.01, BLUE )
-};
-
 
 void init()
 {
@@ -218,11 +176,7 @@ void display(void)
     glPushMatrix();
     for (Orbitor o : orbitors){
       o.display();
-    }
-    for (Ship ship : ships){
-      ship.display();
-    }
-   
+    }   
 
     std::stringstream c_date;
     c_date << "time_delta:  "<< time_delta <<"hours " << endl
@@ -255,13 +209,6 @@ void update()
     }
   for (std::vector<Orbitor>::iterator it = orbitors.begin() ;
        it != orbitors.end();
-       ++it)
-    {
-      it->update();
-    }
-
-  for (std::vector<Ship>::iterator it = ships.begin() ;
-       it != ships.end();
        ++it)
     {
       it->update();

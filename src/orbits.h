@@ -38,26 +38,6 @@ public:
   float distance(Orbitor& o);
 };
 
-class Ship{
-  const char * name;
-  float pos_x;
-  float pos_y;
-  float velocity_x;
-  float velocity_y;
-  Color color;
-  double mass;
-public:
-  Ship(const char* name,
-       float pos_x, float pos_y,
-       float velocity_x,   float velocity_y,
-       Color& color );
-  void display();
-  void calculate_position();
-  void update();
-  float distance(Orbitor& o);  
-};
-
-
 
 orbits_EXPORT int orbits(int argc, char** argv)
 ;
