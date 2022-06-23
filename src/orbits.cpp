@@ -76,8 +76,8 @@ Orbitor::Orbitor(float radius, float rads, float orbit_radius, float period,
   void Orbitor::display()
   {
     glColor3f(color.red,color.green,color.blue);
-    drawCircle(x, y, radius);
-    render_string(x, y, GLUT_BITMAP_HELVETICA_12, this->name, this->color);
+    drawCircle(this->x, this->y, radius);
+    render_string(this->x, this->y, GLUT_BITMAP_HELVETICA_12, this->name, this->color);
   };
 
   
@@ -222,8 +222,6 @@ void update()
     {
       it->update();
     }
-
-  
 }
 
 void reshape(int w, int h)
@@ -300,10 +298,13 @@ int orbits(int argc, char** argv)
   cout<< "days ="  << (current_date - base_time).days() << endl;
   
   
-  for (Orbitor o : orbitors){
-    o.calculate_position();
-  }
-  
+  for (std::vector<Orbitor>::iterator it = orbitors.begin() ;
+       it != orbitors.end();
+       ++it)
+    {
+      it->calculate_position();
+    }
+
   glutInit(&argc, argv);
   glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
   glutInitWindowSize(800, 600);
