@@ -14,6 +14,7 @@ using namespace boost::posix_time;
 
 #include "orbits.h"
 
+const float PI = 3.14;
 
 Color RED =    {1.0, 0.0, 0.0};
 Color YELLOW = {1.0, 1.0, 0.0};
@@ -25,12 +26,12 @@ void drawCircle(float x, float y, float radius );
 void display(void);
 void distances_table();
 
-bool do_update = true;
+bool do_update = false;
 int direction = 1;
 const int SCALING = 10;
 std::string s("2022-06-15");
 date base_time(from_simple_string(s));
-date current_time;
+date current_date;
 int day_count = 0;
 int time_delta = 24;
 
@@ -58,13 +59,18 @@ Orbitor::Orbitor(float radius, float rads, float orbit_radius, float period,
   };
 
   void Orbitor::calculate_position(){
-    int d = (current_time - base_time).days();
 
+    if (0.0 == period){
+      x = 0;
+      y = 0;
+      return;
+    }
     
-    double delta = (period == 0.0) ? period : d / period;
+    int d = (current_date - base_time).days();
+    double delta =  d / period;
     double rads = start_rad + delta;
-    x = cos(rads) * this->orbit_radius;
-    y = sin(rads) * this->orbit_radius;
+    x = cos(rads * 2 * PI) * this->orbit_radius;
+    y = sin(rads * 2 * PI) * this->orbit_radius;
   }
   
   void Orbitor::display()
@@ -74,9 +80,6 @@ Orbitor::Orbitor(float radius, float rads, float orbit_radius, float period,
     render_string(x, y, GLUT_BITMAP_HELVETICA_12, this->name, this->color);
   };
 
-  void Orbitor::set_date(date& d){
-    calculate_position();
-  }
   
   void Orbitor::update()
   {
@@ -180,9 +183,9 @@ void display(void)
 
     std::stringstream c_date;
     c_date << "time_delta:  "<< time_delta <<"hours " << endl
-	   << "date: "<< current_time.year()
-	   << "-" <<  current_time.month()
-	   << "-" <<  current_time.day();
+	   << "date: "<< current_date.year()
+	   << "-" <<  current_date.month()
+	   << "-" <<  current_date.day();
 
     render_string(-30.0, 30.0, GLUT_BITMAP_HELVETICA_12, c_date.str().c_str(), YELLOW);
 
@@ -192,13 +195,18 @@ void display(void)
 }
 
 void update_time(){
-  ptime t(current_time);
+  ptime t(current_date);
   if (direction > 0){
     t += hours(time_delta);
   }else{
     t -= hours(time_delta);
   }
-  current_time = t.date();
+  if (current_date == t.date()){
+    cout << "whoops" <<endl;
+  }
+
+  
+  current_date = t.date();
 }
 
 void update()
@@ -207,6 +215,7 @@ void update()
     {
       return;
     }
+  update_time();
   for (std::vector<Orbitor>::iterator it = orbitors.begin() ;
        it != orbitors.end();
        ++it)
@@ -215,7 +224,6 @@ void update()
     }
 
   
-  update_time();
 }
 
 void reshape(int w, int h)
@@ -231,7 +239,6 @@ void reshape(int w, int h)
 
 void drawCircle(float x, float y, float radius )
 {
-  float PI = 3.14;
   int i;
   int triangleAmount = 20;
   GLfloat twicePi = 2.0f * PI;
@@ -274,17 +281,27 @@ void distances_table(){
 
 int orbits(int argc, char** argv)
 {
+  std::string s("2022-06-15");
+  base_time = date(from_simple_string(s));
+
+  cout << "base time " << base_time << endl;
   
   if (argc > 1)
     {
       cout << argv[1] << endl;
       s = std::string(argv[1]);
-      current_time = date(from_simple_string(s));
+      current_date = date(from_simple_string(s));
     }else{
-      current_time = base_time;
+      current_date = base_time;
     }
+
+  cout << "current time " << current_date << endl;
+
+  cout<< "days ="  << (current_date - base_time).days() << endl;
+  
+  
   for (Orbitor o : orbitors){
-    o.set_date(current_time);
+    o.calculate_position();
   }
   
   glutInit(&argc, argv);
