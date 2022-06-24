@@ -19,6 +19,8 @@ class Orbitor {
   Color color;
   float x;
   float y;
+  float dv_x;
+  float dv_y;
   float radius;
   float orbit_radius = 1.0;
   float start_rad;

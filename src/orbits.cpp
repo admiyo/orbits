@@ -72,8 +72,13 @@ Orbitor::Orbitor(float radius, float rads, float orbit_radius, float period,
     int d = (current_date - base_time).days();
     double delta =  d / period;
     double rads = start_rad + delta;
+
+    float old_x = x;
+    float old_y = y;
     x = cos(rads * 2 * PI) * this->orbit_radius;
     y = sin(rads * 2 * PI) * this->orbit_radius;
+    this->dv_x = x - old_x;
+    this->dv_y = y - old_y;
   }
   
   void Orbitor::display()
@@ -168,8 +173,9 @@ std::vector<Orbitor> orbitors = {
   Orbitor(0.25,  -230, 275.0,  1682.00,  GRAY,  "Ceres",
                    910000000000000000000.0),
   Orbitor(0.25,      3, 280.0,  1821.00, GREEN, "Psyche", 1.0),
-  Orbitor(0.45,   -100, 484.0,  4333.00, RED,   "Jupiter", 1.0)//,
-  //  Orbitor(0.45,    -60, 887.0, 10759.00, BLUE,  "Saturn")
+  Orbitor(0.45,   -100, 484.0,  4333.00, RED,   "Jupiter", 1.0),
+  Orbitor(0.45,    -60, 887.0, 10759.00, BLUE,  "Saturn",
+	  568300000000000000000000000.0)
 };
 
 
@@ -236,7 +242,7 @@ void reshape(int w, int h)
   glViewport(0,0,(GLsizei) w, (GLsizei) h);
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
-  glOrtho(-50.0, 50.0, -50.0, 50.0, -1.0, 1.0);
+  glOrtho(-100.0, 100.0, -100.0, 100.0, -1.0, 1.0);
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
 
