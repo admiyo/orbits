@@ -16,13 +16,15 @@ using namespace boost::posix_time;
 
 const float PI = 3.14;
 
+Color WHITE =  {1.0, 1.0, 1.0};
 Color RED =    {1.0, 0.0, 0.0};
 Color YELLOW = {1.0, 1.0, 0.0};
 Color GREEN =  {0.0, 1.0, 0.0};
 Color BLUE =   {0.0, 0.0, 1.0};
 Color GRAY =   {0.5, 0.5, 0.5};
 
-void drawCircle(float x, float y, float radius );
+void draw_disk(float x, float y, float radius );
+void draw_circle(float x, float y, float radius );
 void display(void);
 void distances_table();
 
@@ -55,6 +57,7 @@ Orbitor::Orbitor(float radius, float rads, float orbit_radius, float period,
     this->orbit_radius = orbit_radius / SCALING;
     this->name = name;
     this->mass = mass;
+    this->start_rad = rads;
     calculate_position();
   };
 
@@ -76,7 +79,11 @@ Orbitor::Orbitor(float radius, float rads, float orbit_radius, float period,
   void Orbitor::display()
   {
     glColor3f(color.red,color.green,color.blue);
-    drawCircle(this->x, this->y, radius);
+    draw_disk(this->x, this->y, radius);
+    if (orbit_radius > 0.0){
+      glColor3f(WHITE.red,WHITE.green,WHITE.blue);
+      draw_circle(0, 0, orbit_radius);
+    }
     render_string(this->x, this->y, GLUT_BITMAP_HELVETICA_12, this->name, this->color);
   };
 
@@ -235,7 +242,7 @@ void reshape(int w, int h)
 
 }
 
-void drawCircle(float x, float y, float radius )
+void draw_disk(float x, float y, float radius )
 {
   int i;
   int triangleAmount = 20;
@@ -250,6 +257,23 @@ void drawCircle(float x, float y, float radius )
   }
   glEnd();
 }
+
+void draw_circle(float x, float y, float radius )
+{
+  int i;
+  int triangleAmount = radius * 20;
+  GLfloat twicePi = 2.0f * PI;
+  glBegin(GL_LINE_LOOP);
+  for(i = 0; i <= triangleAmount;i++) {
+    glVertex2f(
+	       x + (radius * cos(i *  twicePi / triangleAmount)),
+	       y + (radius * sin(i * twicePi / triangleAmount))
+	       );
+  }
+  glEnd();
+}
+
+
 
 void distances_table(){
   int w = 7;
@@ -307,7 +331,7 @@ int orbits(int argc, char** argv)
 
   glutInit(&argc, argv);
   glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
-  glutInitWindowSize(800, 600);
+  glutInitWindowSize(800, 800);
   glutInitWindowPosition(100, 100);
   glutCreateWindow("Solar System Orbital Positions");
   glutMouseFunc(mouseClicks);
